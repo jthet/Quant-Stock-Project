@@ -17,7 +17,7 @@ services:
             - redis-db
         environment:
             - REDIS-IP=redis-db
-        image: jthet/gene_api:1.0
+        image: jthet/gene_api:1.0 # CHANGE TO IMAGE NAME FROM DOCKERHUB
         ports:
             - 5000:5000
         volumes:
