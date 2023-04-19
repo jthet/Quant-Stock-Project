@@ -68,36 +68,36 @@ def handle_data() -> list:
 
 @app.route('/plot/<imageID>?<stock1>&<stock2>', methods = ['GET', 'POST', 'DELETE'])
 def handle_data() -> list:
-'''
-Plot stocks, given by queiry parameters <stock1> and <stock2>
+    '''
+    Plot stocks, given by queiry parameters <stock1> and <stock2>
 
 
-'''
+    '''
 
 
-return 0
+    return 0
 
 
 
 @app.route('/compare', methods = ['GET', 'POST', 'DELETE'])
 def handle_data() -> list:
-'''
-Compare 2 stocks
+    '''
+    Compare 2 stocks
 
- - Quiry Parameters?
-'''
+    - Quiry Parameters?
+    '''
 
-return 0
+    return 0
 
 
 
 @app.route('/data', methods = ['GET', 'POST', 'DELETE'])
 def handle_data() -> list:
-'''
-Some function
-'''
+    '''
+    Some function
+    '''
 
-return 0
+    return 0
 
 
 
