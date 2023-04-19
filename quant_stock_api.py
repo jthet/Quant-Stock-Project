@@ -66,6 +66,42 @@ def handle_data() -> list:
     return f'method completed \n'
 
 
-if __name__ == '__main__':
+@app.route('/plot/<imageID>?<stock1>&<stock2>', methods = ['GET', 'POST', 'DELETE'])
+def handle_data() -> list:
+'''
+Plot stocks, given by queiry parameters <stock1> and <stock2>
 
+
+'''
+
+
+return 0
+
+
+
+@app.route('/compare', methods = ['GET', 'POST', 'DELETE'])
+def handle_data() -> list:
+'''
+Compare 2 stocks
+
+ - Quiry Parameters?
+'''
+
+return 0
+
+
+
+@app.route('/data', methods = ['GET', 'POST', 'DELETE'])
+def handle_data() -> list:
+'''
+Some function
+'''
+
+return 0
+
+
+
+
+if __name__ == '__main__':
+    # can put debug config here
     app.run(debug=True, host='0.0.0.0')
