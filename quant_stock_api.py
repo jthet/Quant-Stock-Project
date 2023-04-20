@@ -5,6 +5,7 @@ import json
 import os
 import matplotlib.pyplot as plt
 import io
+import yfinance as yf
 
 app = Flask(__name__)
 
@@ -20,9 +21,50 @@ def get_redis_image_db():
         raise Exception()
     return redis.Redis(host=redis_ip, port=6379, db=1)
 
+def get_ticker_db():
+    redis_ip = os.environ.get('REDIS-IP')
+    if not redis_ip:
+        raise Exception()
+    return redis.Redis(host=redis_ip, port=6379, db=2, decode_responses=True)
+
 rd = get_redis_client()
 
 rd_image = get_redis_image_db()
+
+rd_tickers = get_ticker_db()
+
+@app.route('/tickers/<ticker>', methods = ['POST'])
+def post_tickers(ticker: str) -> str:
+    '''
+    Gets or Deletes the desired tickers stored in the redis db
+
+    Args: None
+
+    Returns: String stating success or failure
+    '''
+    if(len(rd_tickers.keys())==0):
+        tickers = []
+    else:
+        tickers = rd_tickers.get("Tickers")
+    tickers.append(yf.download(ticker))
+    rd_tickers.set("Tickers", tickers)
+
+    return "Tickers posted"
+        
+
+
+@app.route('/tickers', methods = ['GET', 'DELETE'])
+def handle_tickers():
+    '''
+    Gets or Deletes the desired tickers stored in the redis db
+
+    Args: None
+
+    Returns: Something corresponding to which method was used
+        "DELETE" method: deletes all tickers in redis db
+        "GET" method: returns list of all tickers listed in redis db
+    '''
+
 
 @app.route('/data', methods = ['GET', 'POST', 'DELETE'])
 def handle_data() -> list:
@@ -41,19 +83,10 @@ def handle_data() -> list:
     global rd
 
     if method == 'POST':
-        response = requests.get(url = 'https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/json/hgnc_complete_set.json')
-        data = response.json()
-
-        for item in data['response']['docs']:
-            rd.set(item.get('hgnc_id'), json.dumps(item))
-        return f'Data Loaded there are {len(rd.keys())} keys in the db\n'
+         return "Data posted"
     
     elif method == 'GET':
-        output_list = []
-        keys = rd.keys()
-        for key in keys:
-            output_list.append(json.loads(rd.get(key)))
-        return output_list
+        return "Here is your data"
         
 
     elif method == 'DELETE':
