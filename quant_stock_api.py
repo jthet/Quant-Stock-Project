@@ -43,14 +43,26 @@ def post_tickers(ticker: str) -> str:
 
     Returns: String stating success or failure
     '''
-    if(len(rd_tickers.keys())==0):
-        tickers = []
-    else:
-        tickers = rd_tickers.get("Tickers")
-    tickers.append(yf.download(ticker))
-    rd_tickers.set("Tickers", tickers)
+    method = request.method
+    if method == 'POST':
+        if(len(rd_tickers.keys())==0):
+            tickers = []
+        else:
+            tickers = json.loads(rd_tickers.get("Tickers"))
+        tickers.append(ticker)
+        rd_tickers.set("Tickers", json.dumps(tickers))
 
-    return "Tickers posted"
+        return "Ticker posted\n"
+        
+
+    
+
+    else:
+        return 'the method you tried is not supported\n'
+
+    
+
+    
         
 
 
@@ -65,7 +77,19 @@ def handle_tickers():
         "DELETE" method: deletes all tickers in redis db
         "GET" method: returns list of all tickers listed in redis db
     '''
+    method = request.method
 
+    if method == 'GET':
+        try:
+            return json.loads(rd_tickers.get("Tickers"))
+        except TypeError:
+            return "Please add a Ticker before attempting to return the list of tickers\n"
+    elif method == 'DELETE':
+        rd_tickers.flushdb()
+        return f'Tickers deleted, there are {len(rd.keys())} keys in the db\n'
+    
+    else:
+        return "Method not supported\n"
 
 @app.route('/data', methods = ['GET', 'POST', 'DELETE'])
 def handle_data() -> list:
@@ -84,7 +108,12 @@ def handle_data() -> list:
     global rd
 
     if method == 'POST':
-         return "Data posted"
+        
+        tickerList = rd_tickers.get("Tickers")
+        for ticker in tickerList:
+            rd.set(ticker, yf.download(ticker))
+
+        return "Ticker data posted"
     
     elif method == 'GET':
         return "Here is your data"
