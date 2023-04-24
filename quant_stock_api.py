@@ -4,6 +4,7 @@ import requests
 import json
 import os
 import matplotlib.pyplot as plt
+import pandas as pd
 from datetime import datetime
 import io
 import yfinance as yf
@@ -54,17 +55,8 @@ def post_tickers(ticker: str) -> str:
 
         return "Ticker posted\n"
         
-
-    
-
     else:
         return 'the method you tried is not supported\n'
-
-    
-
-    
-        
-
 
 @app.route('/tickers', methods = ['GET', 'DELETE'])
 def handle_tickers():
@@ -111,12 +103,24 @@ def handle_data() -> list:
         
         tickerList = rd_tickers.get("Tickers")
         for ticker in tickerList:
-            rd.set(ticker, yf.download(ticker))
+            df = yf.download(ticker)
 
-        return "Ticker data posted"
+            rd.set(ticker, df.to_dict())
+
+        return "Ticker data posted", 200
     
     elif method == 'GET':
-        return "Here is your data"
+
+        if len(rd.keys()) == 0:
+            return "Database is empty. Please post data and make sure tickers database is populated. \n", 400
+        else:
+            output_list = []
+            keys = rd.keys()
+            for key in keys:
+                output_list.append(json.loads(rd.get(key)))
+            return output_list, 200
+
+        return "500 error occured \n", 500
         
 
     elif method == 'DELETE':
