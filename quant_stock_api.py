@@ -12,6 +12,8 @@ import pickle
 
 app = Flask(__name__)
 
+
+## Creating Redis clienst
 def get_redis_client():
     redis_ip = os.environ.get('REDIS-IP')
     if not redis_ip:
@@ -31,10 +33,12 @@ def get_ticker_db():
     return redis.Redis(host=redis_ip, port=6379, db=2, decode_responses=True)
 
 rd = get_redis_client()
-
 rd_image = get_redis_image_db()
-
 rd_tickers = get_ticker_db()
+
+
+
+# ROUTES
 
 @app.route('/tickers/<ticker>', methods = ['POST'])
 def post_tickers(ticker: str) -> str:
@@ -62,6 +66,11 @@ def post_tickers(ticker: str) -> str:
     else:
         return 'the method you tried is not supported\n'
 
+
+
+
+
+
 @app.route('/tickers', methods = ['GET', 'DELETE'])
 def handle_tickers():
     '''
@@ -88,6 +97,11 @@ def handle_tickers():
         return "Method not supported\n"
 
 
+
+
+
+
+
 @app.route('/data', methods = ['GET', 'POST', 'DELETE'])
 def handle_data() -> list:
     '''
@@ -98,7 +112,7 @@ def handle_data() -> list:
     Returns: String corresponding to which method was used
         "DELETE" method: deletes all data in redis db
         "POST" method: posts data into redis db
-        "GET" method: returns data from redis db
+        "GET" method: returns ALL data from redis db
     '''
 
     method = request.method
@@ -129,15 +143,13 @@ def handle_data() -> list:
             ticker_dict[ticker] = json_data
 
         return ticker_dict
-
-
-
-        return f' NEED TO WRITE THIS METHOD there are {len(rd.keys())} keys in the db\n'
-
     else:
         return 'the method you tried is not supported\n'
 
-    return f'method completed \n'
+    return f'Error\n'
+
+
+
 
 
 @app.route('/data/<ticker>', methods = ['GET'])
@@ -170,6 +182,8 @@ def get_dataFrame(ticker: str):
 
     
 
+
+
 @app.route('/image/<tickername>', methods = ['POST'])
 def make_image(tickername):
     '''
@@ -185,8 +199,6 @@ def make_image(tickername):
 
     Returns:
         Success method and a image in a redis data base
-
-
     '''
 
     try:
@@ -237,8 +249,15 @@ def make_image(tickername):
 @app.route('/image', methods = ['GET', 'DELETE'])
 def image_manip():
     '''
-    '''
+    Gets and deletes images
 
+    Args: None
+
+    Returns:
+        success message.
+
+        Or can return a file if used with ' curl localhost:5000/image >> <image.png>
+    '''
     method = request.method
 
     if method == 'GET':
