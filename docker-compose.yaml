@@ -21,4 +21,4 @@ services:
         ports:
             - 5000:5000
         volumes:
-            - ./config.yaml:/config.yaml
+            - ./config.yaml:/config/config.yaml
