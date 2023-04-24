@@ -4,9 +4,11 @@ import requests
 import json
 import os
 import matplotlib.pyplot as plt
+import pandas
 from datetime import datetime
 import io
 import yfinance as yf
+import pickle
 
 app = Flask(__name__)
 
@@ -43,28 +45,22 @@ def post_tickers(ticker: str) -> str:
 
     Returns: String stating success or failure
     '''
+    ticker = str(ticker)
+
     method = request.method
     if method == 'POST':
         if(len(rd_tickers.keys())==0):
             tickers = []
         else:
             tickers = json.loads(rd_tickers.get("Tickers"))
-        tickers.append(ticker)
+        tickers.append(str(ticker))
         rd_tickers.set("Tickers", json.dumps(tickers))
 
         return "Ticker posted\n"
-        
 
-    
 
     else:
         return 'the method you tried is not supported\n'
-
-    
-
-    
-        
-
 
 @app.route('/tickers', methods = ['GET', 'DELETE'])
 def handle_tickers():
@@ -91,6 +87,7 @@ def handle_tickers():
     else:
         return "Method not supported\n"
 
+
 @app.route('/data', methods = ['GET', 'POST', 'DELETE'])
 def handle_data() -> list:
     '''
@@ -109,19 +106,33 @@ def handle_data() -> list:
 
     if method == 'POST':
         
-        tickerList = rd_tickers.get("Tickers")
+        tickerList = json.loads(rd_tickers.get("Tickers"))
         for ticker in tickerList:
-            rd.set(ticker, yf.download(ticker))
 
-        return "Ticker data posted"
-    
-    elif method == 'GET':
-        return "Here is your data"
-        
+            df = yf.download(str(ticker))
+            df_string = df.to_json()
+            rd.set(str(ticker), df_string)
+
+        return "Ticker data posted \n", 200    
 
     elif method == 'DELETE':
         rd.flushdb()
         return f'data deleted, there are {len(rd.keys())} keys in the db\n'
+
+    elif method == 'GET':
+        
+        ticker_dict = {}
+
+        for ticker in rd.keys():
+            df = pandas.read_json(rd.get(str(ticker)))
+            json_data = df.to_json()
+            ticker_dict[ticker] = json_data
+
+        return ticker_dict
+
+
+
+        return f' NEED TO WRITE THIS METHOD there are {len(rd.keys())} keys in the db\n'
 
     else:
         return 'the method you tried is not supported\n'
@@ -129,7 +140,35 @@ def handle_data() -> list:
     return f'method completed \n'
 
 
+@app.route('/data/<ticker>', methods = ['GET'])
+def get_dataFrame(ticker: str):
+    """
+    Returns json data for a specific ticker in the data set
 
+    Args:
+        ticker (str): ticker 
+
+    Returns:
+        json_data: json data of ticker of interest
+    """
+
+    if not str(ticker).isalpha():
+        return "Invalid Ticker\n"
+
+    if len(rd.keys()) == 0:
+        return "Database is empty. Please post data and make sure tickers database is populated. \n", 400
+    else:
+
+        try:
+            df = pandas.read_json(rd.get(str(ticker)))
+        except Exception as e:
+            return f"Ticker Does not exist, error as {e}\n"
+
+        json_data = df.to_json()
+        return json_data, 200
+    return "\n"
+
+    
 
 @app.route('/image/<tickername>', methods = ['POST'])
 def make_image(tickername):
@@ -149,8 +188,6 @@ def make_image(tickername):
 
 
     '''
-
-
 
     try:
         start_year = int(request.args.get('start_year', int(datetime.now().year) - 5)) #2000 is default year
