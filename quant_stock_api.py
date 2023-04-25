@@ -1,6 +1,5 @@
 from flask import Flask, request, send_file
 import redis
-import requests
 import json
 import os
 import matplotlib.pyplot as plt
@@ -18,7 +17,7 @@ def get_redis_client():
     redis_ip = os.environ.get('REDIS-IP')
     if not redis_ip:
         raise Exception()
-    return redis.Redis(host=redis_ip, port=6379, db=0, decode_responses=True)
+    return redis.Redis(host=redis_ip, port=6379, db=0)
 
 def get_redis_image_db():
     redis_ip = os.environ.get('REDIS-IP')
@@ -91,7 +90,7 @@ def handle_tickers():
             return "Please add a Ticker before attempting to return the list of tickers\n"
     elif method == 'DELETE':
         rd_tickers.flushdb()
-        return f'Tickers deleted, there are {len(rd.keys())} keys in the db\n'
+        return f'Tickers deleted, there are {len(rd_tickers.keys())} keys in the db\n'
     
     else:
         return "Method not supported\n"
@@ -124,8 +123,8 @@ def handle_data() -> list:
         for ticker in tickerList:
 
             df = yf.download(str(ticker))
-            df_string = df.to_json()
-            rd.set(str(ticker), df_string)
+            data_bytes = pickle.dumps(df)
+            rd.set(str(ticker), data_bytes)
 
         return "Ticker data posted \n", 200    
 
@@ -135,14 +134,19 @@ def handle_data() -> list:
 
     elif method == 'GET':
         
-        ticker_dict = {}
+        dataframes = []
 
-        for ticker in rd.keys():
-            df = pandas.read_json(rd.get(str(ticker)))
-            json_data = df.to_json()
-            ticker_dict[ticker] = json_data
+        #for ticker in rd.keys():
+         #   df = pickle.loads(rd.get(str(ticker)))
+          #  dataframes.append(df["Adj Close"][1])
+        keys = [key.decode('utf-8') for key in rd.keys()]
 
-        return ticker_dict
+        for ticker in keys:
+            df = pickle.loads(rd.get(ticker))
+            relevantData = []
+            
+        
+        return str(df["Adj Close"][1])
     else:
         return 'the method you tried is not supported\n'
 
