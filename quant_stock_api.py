@@ -118,7 +118,7 @@ def handle_data() -> list:
     global rd
 
     if method == 'POST':
-        
+        ### DO TRY EXCEPT OR IF STATEMENT TO MAKE SURE TICKERS IN DB
         tickerList = json.loads(rd_tickers.get("Tickers"))
         for ticker in tickerList:
 
@@ -143,10 +143,12 @@ def handle_data() -> list:
 
         for ticker in keys:
             df = pickle.loads(rd.get(ticker))
-            relevantData = []
+            relevantData = {"Start": df.index[0], "End": df.index[0], "First Price": df["Open"][0], "Last Price": df["Close"][-1], "TICKER NAME": ticker}
+            
+            dataframes.append(relevantData)
             
         
-        return str(df["Adj Close"][1])
+        return dataframes
     else:
         return 'the method you tried is not supported\n'
 
