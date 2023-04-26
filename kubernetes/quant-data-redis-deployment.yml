@@ -2,23 +2,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jacksont-test-redis-deployment
+  name: quant-stock-redis-deployment  #jacksont-test-redis-deployment
   labels:
-    app: jacksont-test-redis-deployment
+    app: quant-stock-redis-deployment
     username: jacksont
     env: test
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: jacksont-test-redis-deployment
+      app: quant-stock-redis-deployment
       username: jacksont
       env: test
   template:
     metadata:
-      name: jacksont-test-redis-deployment
+      name: quant-stock-redis-deployment
       labels:
-        app: jacksont-test-redis-deployment
+        app: quant-stock-redis-deployment
         username: jacksont
         env: test
     spec:
@@ -28,14 +28,14 @@ spec:
           image: redis:7
           env:
           - name: FLASK_APP
-            value: "gene_api.py"
+            value: "quant_stock_api.py"
           ports:
           - name: http
-            containerPort: 6379
+            containerPort: 5000
           volumeMounts:
-          - name: jacksont-app-data
+          - name: quant-app-data
             mountPath: "/data"
       volumes:
-      - name: jacksont-app-data
+      - name: quant-app-data
         persistentVolumeClaim:
-          claimName: jacksont-app-data
+          claimName: quant-app-data
