@@ -17,8 +17,9 @@ def get_redis_client():
         raise Exception()
     return redis.Redis(host=redis_ip, port=6379, db=3)
 
-q = get_queue_db()
+
 rd = get_redis_client()
+q = get_queue_db()
 
 def generate_jid():
     """
