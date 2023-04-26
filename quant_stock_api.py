@@ -179,17 +179,18 @@ def get_dataFrame(ticker: str):
     else:
 
         try:
-            df = pandas.read_json(rd.get(str(ticker)))
+            df = pickle.loads(rd.get(ticker))
         except Exception as e:
             return f"Ticker Does not exist, error as {e}\n"
 
-        json_data = df.to_json()
-        return json_data, 200
+        returnDf_rel = {"Start": df.index[0], "End": df.index[0], "First Price": df["Open"][0], "Last Price": df["Close"][-1], "TICKER NAME": ticker}
+
+        return returnDf_rel, 200
     return "\n"
 
     
 
-
+###### NEED TO MAKE IMAGE ROUTE THAT CAN HANGLE 2+ TICKERS
 
 @app.route('/image/<tickername>', methods = ['GET', 'POST', 'DELETE'])
 def make_image(tickername):
@@ -272,6 +273,29 @@ def make_image(tickername):
 
         return "Image is posted\n", 200
 
+
+
+
+@app.route('/help', methods = ['GET'])
+def get_help() -> str:
+    """
+    Returns a message of all the available routes and methods and how to use them 
+    
+    Route: <baseURL>/help
+    Args:
+        NONE
+    Returns:
+        help_message (string) : brief descriptions of all available routes and methods
+    """
+
+    list_of_functions = ['post_tickers', 'handle_tickers', 'handle_data', 'get_dataFrame', 'make_image', 'get_help']
+    
+    help_message = '\nHERE IS A HELP MESSAGE FOR EVERY FUNCTION/ROUTE IN "quant_stock_api.py"\n\n'
+
+    for func in list_of_functions:
+        help_message = help_message + f'{func}:\n' + eval(func).__doc__ + '\n\n'
+
+    return help_message
 
 
 
