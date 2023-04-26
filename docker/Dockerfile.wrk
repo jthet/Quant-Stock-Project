@@ -1,0 +1,13 @@
+FROM python:3.8.10
+
+RUN pip install redis
+RUN pip install requests
+RUN pip install yfinance==0.2.18
+RUN pip install pandas==1.2.4
+RUN pip install matplotlib==3.4.2
+RUN pip install hotqueue==0.2.8
+
+ADD ./src/worker.py /worker.py
+ADD ./src/jobs.py /jobs.py
+
+CMD ["python3", "/worker.py"]
