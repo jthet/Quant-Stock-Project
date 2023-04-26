@@ -2,33 +2,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jacksont-test-flask-deployment
+  name: quant-stock-flask-deployment #jacksont-test-flask-deployment
   labels:
-    app: jacksont-test-flask-deployment
+    app: quant-stock-flask-deployment
     username: jacksont
     env: test
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: jacksont-test-flask-deployment
+      app: quant-stock-flask-deployment
       username: jacksont
       env: test
   template:
     metadata:
-      name: jacksont-test-flask-deployment
+      name: quant-stock-flask-deployment
       labels:
-        app: jacksont-test-flask-deployment
+        app: quant-stock-flask-deployment
         username: jacksont
         env: test
     spec:
       containers:
-        - name: jacksont-test-flask-deployment
+        - name: quant-stock-flask-deployment
           imagePullPolicy: Always
-          image: jthet/gene_api:1.0
+          image: jthet/quant_stock_api:1.0.1
           env:
             - name: REDIS-IP
-              value: jacksont-test-redis-service
+              value: quant-stock-redis-service
           ports:
             - containerPort: 5000
 
