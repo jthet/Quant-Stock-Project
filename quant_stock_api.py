@@ -118,13 +118,17 @@ def handle_data() -> list:
     global rd
 
     if method == 'POST':
-        ### DO TRY EXCEPT OR IF STATEMENT TO MAKE SURE TICKERS IN DB
-        tickerList = json.loads(rd_tickers.get("Tickers"))
-        for ticker in tickerList:
+        ### DO TRY EXCEPT OR IF STATEMENT TO MAKE SURE THERE ARE TICKERS IN DB
+        try:
+            tickerList = json.loads(rd_tickers.get("Tickers"))
+            for ticker in tickerList:
 
-            df = yf.download(str(ticker))
-            data_bytes = pickle.dumps(df)
-            rd.set(str(ticker), data_bytes)
+                df = yf.download(str(ticker))
+                if(len(df) != 0):
+                    data_bytes = pickle.dumps(df)
+                    rd.set(str(ticker), data_bytes)
+        except TypeError:
+            return "Please post tickers to the ticker db first\n"
 
         return "Ticker data posted \n", 200    
 
@@ -136,9 +140,7 @@ def handle_data() -> list:
         
         dataframes = []
 
-        #for ticker in rd.keys():
-         #   df = pickle.loads(rd.get(str(ticker)))
-          #  dataframes.append(df["Adj Close"][1])
+        # USE THIS LINE TO GET KEYS FROM THE DB
         keys = [key.decode('utf-8') for key in rd.keys()]
 
         for ticker in keys:
