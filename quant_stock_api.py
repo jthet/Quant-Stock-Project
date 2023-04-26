@@ -8,6 +8,7 @@ from datetime import datetime
 import io
 import yfinance as yf
 import pickle
+import jobs
 
 app = Flask(__name__)
 
@@ -39,6 +40,20 @@ rd_tickers = get_ticker_db()
 
 # ROUTES
 
+
+@app.route('/jobs', methods = ['POST'])
+def job_api():
+    """
+    API route for creating a new job to do some analysis. This route accepts a JSON payload
+    describing the job to be created.
+    """
+    try:
+        job = request.get_json(force=True)
+    except Exception as e:
+        return json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
+    return json.dumps(jobs.add_job(job['start'], job['end']))
+
+
 @app.route('/tickers/<ticker>', methods = ['POST'])
 def post_tickers(ticker: str) -> str:
     '''
@@ -57,13 +72,18 @@ def post_tickers(ticker: str) -> str:
     if method == 'POST':
         if(len(rd_tickers.keys())==0):
             tickers = []
+            tickers.append(str(ticker))
+            rd_tickers.set("Tickers", json.dumps(tickers))
+            return "Ticker posted\n"
         else:
             tickers = json.loads(rd_tickers.get("Tickers"))
-        tickers.append(str(ticker))
-        rd_tickers.set("Tickers", json.dumps(tickers))
-
-        return "Ticker posted\n"
-
+            if(ticker not in tickers):
+                tickers.append(str(ticker))
+                rd_tickers.set("Tickers", json.dumps(tickers))
+                return "Ticker posted\n"
+            else:
+                return "Ticker already in ticker list\n"
+        
 
     else:
         return 'the method you tried is not supported\n'
