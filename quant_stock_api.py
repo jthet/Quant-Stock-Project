@@ -146,7 +146,6 @@ def handle_data() -> list:
             relevantData = {"Start": df.index[0], "End": df.index[0], "First Price": df["Open"][0], "Last Price": df["Close"][-1], "TICKER NAME": ticker}
             
             dataframes.append(relevantData)
-            
         
         return dataframes
     else:
@@ -207,70 +206,16 @@ def make_image(tickername):
         Success method and a image in a redis data base
     '''
 
-    try:
-        start_year = int(request.args.get('start_year', int(datetime.now().year) - 5)) #2000 is default year
-    except ValueError:
-        return "Error: query parameter 'start_year' must be an integer\n", 400
-
-    try:
-        end_year = int(request.args.get('end_year', int(datetime.now().year))) #2000 is default year
-    except ValueError:
-        return "Error: query parameter 'end_year' must be an integer\n", 400
-
-    if tickername.isalpha() == False:
-        return f"Error: the ticker must be alphabetical.\n Ex) '/image/AAPL' \n NOT '/image/{tickername}'\n"   
-
-    elif start_year > end_year:
-        return "Error: Start year greater than end year\n", 400
-
-    else:
-
-        rd_image.flushdb() ## NEED TO REMOVE (CLEARS DATA BASE BF POSTING AN IMAGE)
-
-        # Getting data
-        end = datetime.now()
-        start = datetime(start_year, end.month, end.day)
-        try:
-            dataset = yf.download(tickername, start, end)
-        except Exception:
-            return f"{tickername} is not a valid/supported stock ticker"
-            
-        # Selecting data
-        data_to_plot = dataset.loc[f"{start_year}":f"{end_year}", "Close"]   
-        curr_plot = data_to_plot.plot(figsize=(12,4), legend = True)            
-        plt.legend([f"{tickername}"])
-        plt.title(f"{tickername} Stock Price History")
-        plt.ylabel("$ USD")
-            
-        buf = io.BytesIO()
-        plt.savefig(buf, format = 'png')
-        buf.seek(0)
-
-        rd_image.set('image', buf.getvalue())
-
-    return "Image is posted\n", 200
-
-
-
-@app.route('/image', methods = ['GET', 'DELETE'])
-def image_manip():
-    '''
-    Gets and deletes images
-
-    Args: None
-
-    Returns:
-        success message.
-
-        Or can return a file if used with ' curl localhost:5000/image >> <image.png>
-    '''
     method = request.method
 
     if method == 'GET':
         if(len(rd_image.keys()) == 0):
             return "No images in the Database\n"
         else:
-            image = rd_image.get('image') # Need a way to index each image ??
+            try:
+                image = rd_image.get(tickername) # Need a way to index each image ??
+            except Exception:
+                return f"Plot for {tickername} not in database, please post first\n"
             buf = io.BytesIO(image)
             buf.seek(0)
 
@@ -283,6 +228,49 @@ def image_manip():
         rd_image.flushdb()
         return f'Plot deleted, there are {len(rd_image.keys())} images in the db\n'
 
+    elif method == 'POST':
+        try:
+            start_year = int(request.args.get('start_year', int(datetime.now().year) - 5)) #2000 is default year
+        except ValueError:
+            return "Error: query parameter 'start_year' must be an integer\n", 400
+
+        try:
+            end_year = int(request.args.get('end_year', int(datetime.now().year))) #2000 is default year
+        except ValueError:
+            return "Error: query parameter 'end_year' must be an integer\n", 400
+
+        if tickername.isalpha() == False:
+            return f"Error: the ticker must be alphabetical.\n Ex) '/image/AAPL' \n NOT '/image/{tickername}'\n"   
+
+        elif start_year > end_year:
+            return "Error: Start year greater than end year\n", 400
+
+        else:
+
+            # Getting data
+            end = datetime.now()
+            start = datetime(start_year, end.month, end.day)
+            try:
+                dataset = pickle.loads(rd.get(ticker))
+
+
+            except Exception:
+                return f"{tickername} is not a valid/supported stock ticker"
+                
+            # Selecting data
+            data_to_plot = dataset.loc[f"{start_year}":f"{end_year}", "Close"]   
+            curr_plot = data_to_plot.plot(figsize=(12,4), legend = True)            
+            plt.legend([f"{tickername}"])
+            plt.title(f"{tickername} Stock Price History")
+            plt.ylabel("$ USD")
+                
+            buf = io.BytesIO()
+            plt.savefig(buf, format = 'png')
+            buf.seek(0)
+
+            rd_image.set(str(tickername), buf.getvalue())
+
+        return "Image is posted\n", 200
 
 
 
