@@ -9,7 +9,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: quant-stock-redis-service
+    app: quant-stock-redis-deployment
   ports:
   - name: redis
     port: 6379
