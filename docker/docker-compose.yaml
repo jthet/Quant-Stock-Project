@@ -30,5 +30,5 @@ services:
         depends_on:
             - redis-db
         environment:
-            - REDIS_IP=redis-db
+            - REDIS-IP=redis-db
         image: lucalabardini/qworker:1.0
