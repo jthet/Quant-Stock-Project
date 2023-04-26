@@ -108,7 +108,7 @@ def handle_tickers():
 @app.route('/data', methods = ['GET', 'POST', 'DELETE'])
 def handle_data() -> list:
     '''
-    Manipulates data wiht 3 different methods with GET, POST, and DELETE method
+    Manipulates data with 3 different methods with GET, POST, and DELETE method
 
     Route: <baseURL>/data
     Methods: ['GET', 'POST', 'DELETE']
@@ -152,7 +152,7 @@ def handle_data() -> list:
 
         for ticker in keys:
             df = pickle.loads(rd.get(ticker))
-            relevantData = {"Start": df.index[0], "End": df.index[0], "First Price": df["Open"][0], "Last Price": df["Close"][-1], "TICKER NAME": ticker}
+            relevantData = {"Start": df.index[0], "End": df.index[-1], "First Price": df["Open"][0], "Last Price": df["Close"][-1], "TICKER NAME": ticker}
             
             dataframes.append(relevantData)
         
@@ -193,7 +193,7 @@ def get_dataFrame(ticker: str):
         except Exception as e:
             return f"Ticker Does not exist, error as {e}\n"
 
-        returnDf_rel = {"Start": df.index[0], "End": df.index[0], "First Price": df["Open"][0], "Last Price": df["Close"][-1], "TICKER NAME": ticker}
+        returnDf_rel = {"Start": df.index[0], "End": df.index[-1], "First Price": df["Open"][0], "Last Price": df["Close"][-1], "TICKER NAME": ticker}
 
         return returnDf_rel, 200
     return "\n"
