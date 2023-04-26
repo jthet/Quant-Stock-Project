@@ -44,6 +44,9 @@ def post_tickers(ticker: str) -> str:
     '''
     Gets or Deletes the desired tickers stored in the redis db
 
+    Route: <baseURL>/tickers/<ticker>
+    Methods: ['POST']
+
     Args: None
 
     Returns: String stating success or failure
@@ -68,12 +71,13 @@ def post_tickers(ticker: str) -> str:
 
 
 
-
-
 @app.route('/tickers', methods = ['GET', 'DELETE'])
 def handle_tickers():
     '''
     Gets or Deletes the desired tickers stored in the redis db
+
+    Route: <baseURL>/tickers
+    Methods: ['GET', 'DELETE']
 
     Args: None
 
@@ -105,6 +109,9 @@ def handle_tickers():
 def handle_data() -> list:
     '''
     Manipulates data wiht 3 different methods with GET, POST, and DELETE method
+
+    Route: <baseURL>/data
+    Methods: ['GET', 'POST', 'DELETE']
 
     Args: None
 
@@ -164,6 +171,9 @@ def get_dataFrame(ticker: str):
     """
     Returns json data for a specific ticker in the data set
 
+    Route: <baseURL>/data/<ticker>
+    Methods: ['GET']
+
     Args:
         ticker (str): ticker 
 
@@ -202,8 +212,15 @@ def make_image(tickername):
     *Sets the plot in a redis database*
         To retrieve image use "base_url/image -X GET >> file_name.png"
 
+    Route: <baseURL>/image/<tickername>
+    Methods: ['GET', 'POST', 'DELETE']
+
     Args:
         tickername: the stock-of-interest's ticker symbol ex) 'AAPL'
+    
+    Query Parametes: (for Post method Only)
+        "start": The start year of the plot 
+        "end": the end year of the plot 
 
     Returns:
         Success method and a image in a redis data base
@@ -233,14 +250,14 @@ def make_image(tickername):
 
     elif method == 'POST':
         try:
-            start_year = int(request.args.get('start_year', int(datetime.now().year) - 5)) #2000 is default year
+            start_year = int(request.args.get('start', int(datetime.now().year) - 5)) #2000 is default year
         except ValueError:
-            return "Error: query parameter 'start_year' must be an integer\n", 400
+            return "Error: query parameter 'start' must be an integer\n", 400
 
         try:
-            end_year = int(request.args.get('end_year', int(datetime.now().year))) #2000 is default year
+            end_year = int(request.args.get('end', int(datetime.now().year))) #2000 is default year
         except ValueError:
-            return "Error: query parameter 'end_year' must be an integer\n", 400
+            return "Error: query parameter 'end' must be an integer\n", 400
 
         if tickername.isalpha() == False:
             return f"Error: the ticker must be alphabetical.\n Ex) '/image/AAPL' \n NOT '/image/{tickername}'\n"   
@@ -262,7 +279,7 @@ def make_image(tickername):
             data_to_plot = dataset.loc[f"{start_year}":f"{end_year}", "Close"]   
             curr_plot = data_to_plot.plot(figsize=(12,4), legend = True)            
             plt.legend([f"{tickername}"])
-            plt.title(f"{tickername} Stock Price History")
+            plt.title(f"{tickername} Stock Price History from {start_year} to {end_year}")
             plt.ylabel("$ USD")
                 
             buf = io.BytesIO()
@@ -274,6 +291,9 @@ def make_image(tickername):
         return "Image is posted\n", 200
 
 
+# to support multiple images, basically do samething as above but just repeat the "data_to_plot = " and "curr_plot" = lines. should work
+
+
 
 
 @app.route('/help', methods = ['GET'])
@@ -281,7 +301,9 @@ def get_help() -> str:
     """
     Returns a message of all the available routes and methods and how to use them 
     
-    Route: <baseURL>/help
+    Route: <baseURL>/help 
+    Methods: [GET]
+
     Args:
         NONE
     Returns:
