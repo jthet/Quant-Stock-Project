@@ -315,6 +315,139 @@ def make_image(tickername):
 
 
 
+@app.route('/correlation/<tickername1>/<tickername2>/<start>/<end>/<value_type>', methods = ['GET'])
+def cal_correlation(tickername1:str,tickername2:str,start:str,end:str,value_type:str):
+    '''
+    Takes in two stocks, the start and end periods, and returns the correlation value using the open value
+
+    Args:
+        tickername1: First ticker name ex) 'AAPL'
+        tickername2: Second ticker name ex) 'MSFT'
+        start: start of correlation period 'year-month-date' ex) '2016-04-25'
+        end: end of correlation period 'year-month-date' ex) '2017-04-25'
+
+    Returns:
+        correlation_coefficient: correlation coefficient
+
+    '''
+
+    method = request.method
+
+    if method == 'GET':
+
+        #check value type
+        if value_type not in ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']:
+            return "Value type is invalid"
+        
+        #check date format
+        try:
+            start_dt = datetime.strptime(start, '%Y-%m-%d')
+            end_dt = datetime.strptime(end, '%Y-%m-%d')
+        except ValueError:
+            return "Invalid date format"
+        
+        #check start date is before the end date
+        if datetime.strptime(start, '%Y-%m-%d') > datetime.strptime(end, '%Y-%m-%d'):
+            return "Start date cannot be after end date"
+
+
+        #check to see ticker is valid and has been posted
+        try:
+            dataset1 = pickle.loads(rd.get(tickername1))
+            x = dataset1.loc[f"{start}":f"{end}", value_type]
+            dataset2 = pickle.loads(rd.get(tickername2))
+            y = dataset2.loc[f"{start}":f"{end}", value_type]
+
+        except Exception:
+            return f"{tickername1} or {tickername2} is not a stock ticker that has been posted. Make sure you post the desired tickers first. \n"
+        
+        #check if date is within valid range
+        
+        start_found1 = False
+        end_found1 = False
+        start_found2 = False
+        end_found2 = False
+
+        test_date_start = start + " 00:00:00"
+        test_date_end = end + " 00:00:00"
+        test_date_start_dt = datetime.strptime(test_date_start, "%Y-%m-%d %H:%M:%S")
+        test_date_end_dt = datetime.strptime(test_date_end, "%Y-%m-%d %H:%M:%S")
+
+        # Check if start and end dates exist in dataset1
+        for i, date in enumerate(dataset1.index):
+            if date == test_date_start_dt:
+                start_found1 = True
+            if date == test_date_end_dt:
+                end_found1 = True
+            if start_found1 and end_found1:
+                break
+
+        # Check if start and end dates exist in dataset2
+        for i, date in enumerate(dataset2.index):
+            if date == test_date_start_dt:
+                start_found2 = True
+            if date == test_date_end_dt:
+                end_found2 = True
+            if start_found2 and end_found2:
+                break
+
+
+        if not start_found1 or not end_found1 or not start_found2 or not end_found2:
+            if not start_found1:
+                return(f"{start} not found in {tickername1}")
+            if not end_found1:
+                return(f"{end} not found in {tickername1}")
+            if not start_found2:
+                return(f"{start} not found in {tickername2}")
+            if not end_found2:
+                return(f"{end} not found in {tickername2}")
+        else:
+            # Both start and end dates exist in both datasets
+            # continue with the correlation calculation
+            None
+            
+
+        # making sure dates align
+        if len(x) == len(y):
+            n = len(x)
+            # x and y product summed up
+            index = 0
+            x_y_product_sum = 0
+            for value_type in x:
+                x_y_product_sum = x_y_product_sum + (x[index] * y[index])
+                index = index + 1
+
+            # x summed and y summed and multiplied
+            x_sum = 0
+            y_sum = 0
+            for value_type in x:
+                x_sum = x_sum + value_type
+            for value_type in y:
+                y_sum = y_sum + value_type
+
+            x_sum_multiply_y_sum = x_sum * y_sum
+
+            # Values squared and summed
+            x2_sum = 0
+            y2_sum = 0
+
+            for value_type in x:
+                x2_sum = value_type*value_type + x2_sum
+            for value_type in y:
+                y2_sum = value_type*value_type + y2_sum
+
+            correlation_coefficient = (n*x_y_product_sum - x_sum_multiply_y_sum)/math.sqrt((n*x2_sum - x_sum*x_sum)*(n*y2_sum - y_sum*y_sum))
+            
+            return {"correlation coefficient": correlation_coefficient}
+        
+        else:
+            return "Dates do not match"
+    
+    else:
+        return "Method not supported\n"
+
+
+
 
 @app.route('/help', methods = ['GET'])
 def get_help() -> str:
