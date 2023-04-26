@@ -9,6 +9,7 @@ import io
 import yfinance as yf
 import pickle
 import jobs
+import math
 
 app = Flask(__name__)
 
@@ -238,7 +239,7 @@ def make_image(tickername):
     Args:
         tickername: the stock-of-interest's ticker symbol ex) 'AAPL'
     
-    Query Parametes: (for Post method Only)
+    Query Parameters: (for Post method Only)
         "start": The start year of the plot 
         "end": the end year of the plot 
 
@@ -297,9 +298,11 @@ def make_image(tickername):
                 
             # Selecting data
             data_to_plot = dataset.loc[f"{start_year}":f"{end_year}", "Close"]   
-            curr_plot = data_to_plot.plot(figsize=(12,4), legend = True)            
+            plt.figure()
+            curr_plot = data_to_plot.plot(figsize=(12,4), legend = True) 
+                    
             plt.legend([f"{tickername}"])
-            plt.title(f"{tickername} Stock Price History from {start_year} to {end_year}")
+            plt.title(f"{tickername}Stock Price History from {start_year} to {end_year}")
             plt.ylabel("$ USD")
                 
             buf = io.BytesIO()

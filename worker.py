@@ -1,7 +1,10 @@
-from jobs import q, update_job_status
+import jobs
+import quant_stock_api
 
 @q.worker
 def execute_job(jid):
-    update_job_status(jid, 'in progress')
+    jobs.update_job_status(jid, 'in progress')
     # Some code here for job
-    update_job_status(jid, 'complete')
+    
+
+    jobs.update_job_status(jid, 'complete')
