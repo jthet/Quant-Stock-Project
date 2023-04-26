@@ -41,8 +41,12 @@ rd_tickers = get_ticker_db()
 
 # ROUTES
 
+@app.route('/jobs/<jid>', methods = ['GET'])
+def job_status(jid):
+    return jobs.get_job_by_id(jid)
 
-@app.route('/jobs', methods = ['POST'])
+
+@app.route('/jobs/image', methods = ['POST'])
 def job_api():
     """
     API route for creating a new job to do some analysis. This route accepts a JSON payload
@@ -52,7 +56,7 @@ def job_api():
         job = request.get_json(force=True)
     except Exception as e:
         return json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
-    return json.dumps(jobs.add_job(job['start'], job['end']))
+    return json.dumps(jobs.add_job(job['ticker'])) + "\n"
 
 
 @app.route('/tickers/<ticker>', methods = ['POST'])
@@ -223,6 +227,55 @@ def get_dataFrame(ticker: str):
 
 ###### NEED TO MAKE IMAGE ROUTE THAT CAN HANGLE 2+ TICKERS
 
+@app.route('/image', methods = ['DELETE'])
+def del_images():
+    method = request.method
+    if method == 'DELETE':
+        rd_image.flushdb()
+        return f'All plots deleted, there are {len(rd_image.keys())} images in the db\n'
+    else:
+        return "This method is not supporter by the route\n"
+
+
+def post_image(tickername):
+    
+    start_year = int(datetime.now().year) - 5 #2000 is default year
+    
+    end_year = int(datetime.now().year) #2000 is default year
+    
+    if tickername.isalpha() == False:
+        return f"Error: the ticker must be alphabetical.\n Ex) '/image/AAPL' \n NOT '/image/{tickername}'\n"   
+
+    elif start_year > end_year:
+        return "Error: Start year greater than end year\n", 400
+
+    else:
+
+        # Getting data
+        end = datetime.now()
+        start = datetime(start_year, end.month, end.day)
+        try:
+            dataset = pickle.loads(rd.get(tickername))
+        except Exception:
+            return f"{tickername} is not a valid/supported stock ticker"
+            
+        # Selecting data
+        data_to_plot = dataset.loc[f"{start_year}":f"{end_year}", "Close"]   
+        plt.figure()
+        curr_plot = data_to_plot.plot(figsize=(12,4), legend = True) 
+                
+        plt.legend([f"{tickername}"])
+        plt.title(f"{tickername}Stock Price History from {start_year} to {end_year}")
+        plt.ylabel("$ USD")
+            
+        buf = io.BytesIO()
+        plt.savefig(buf, format = 'png')
+        buf.seek(0)
+
+        rd_image.set(str(tickername), buf.getvalue())
+    return "Success\n"
+
+
 @app.route('/image/<tickername>', methods = ['GET', 'POST', 'DELETE'])
 def make_image(tickername):
     '''
@@ -266,7 +319,7 @@ def make_image(tickername):
             return send_file(buf, mimetype = 'image/png') #, as_attachment=True, download_name=file_name)   <--- Could potentially add, works without
 
     elif method =='DELETE':
-        rd_image.flushdb()
+        rd_image.delete(tickername)
         return f'Plot deleted, there are {len(rd_image.keys())} images in the db\n'
 
     elif method == 'POST':

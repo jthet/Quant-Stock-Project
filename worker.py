@@ -1,10 +1,11 @@
-import jobs
-import quant_stock_api
+from jobs import get_job_by_id, update_job_status, q
+from quant_stock_api import post_image
 
 @q.worker
 def execute_job(jid):
-    jobs.update_job_status(jid, 'in progress')
+    update_job_status(jid, 'in progress')
     # Some code here for job
-    
+    symbol = get_job_by_id(jid)['ticker']
+    post_image(symbol)
 
-    jobs.update_job_status(jid, 'complete')
+    update_job_status(jid, 'complete')

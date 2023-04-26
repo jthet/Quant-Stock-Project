@@ -9,7 +9,7 @@ def get_queue_db():
     redis_ip = os.environ.get('REDIS-IP')
     if not redis_ip:
         raise Exception()
-    return HotQueue("queue", host=redis_ip, port=6379, db=1)
+    return HotQueue("queue", host=redis_ip, port=6379, db=4)
 
 def get_redis_client():
     redis_ip = os.environ.get('REDIS-IP')
@@ -33,21 +33,19 @@ def generate_job_key(jid):
     """
     return 'job.{}'.format(jid)
 
-def instantiate_job(jid, status, start, end):
+def instantiate_job(jid, status, ticker):
     """
     Create the job object description as a python dictionary. Requires the job id, status,
-    start and end parameters.
+    and ticker parameters.
     """
     if type(jid) == str:
         return {'id': jid,
                 'status': status,
-                'start': start,
-                'end': end
+                'ticker': ticker
         }
     return {'id': jid.decode('utf-8'),
             'status': status.decode('utf-8'),
-            'start': start.decode('utf-8'),
-            'end': end.decode('utf-8')
+            'ticker': ticker.decode('utf-8')
     }
 
 def save_job(job_key, job_dict):
@@ -58,10 +56,10 @@ def queue_job(jid):
     """Add a job to the redis queue."""
     q.put(jid)
 
-def add_job(start, end, status="submitted"):
+def add_job(ticker, status="submitted"):
     """Add a job to the redis queue."""
     jid = generate_jid()
-    job_dict = instantiate_job(jid, status, start, end)
+    job_dict = instantiate_job(jid, status, ticker)
     # update call to save_job:
     save_job(generate_job_key(jid), job_dict)
     # update call to queue_job:
@@ -72,7 +70,7 @@ def get_job_by_id(jid):
     """
     Gets job by id name
     """
-    return json.loads(rd.get(jid))
+    return json.loads(rd.get(generate_job_key(jid)))
 
 def update_job_status(jid, status):
     """Update the status of job with job id `jid` to status `status`."""
