@@ -191,7 +191,7 @@ def get_dataFrame(ticker: str):
 
 
 
-@app.route('/image/<tickername>', methods = ['POST'])
+@app.route('/image/<tickername>', methods = ['GET', 'POST', 'DELETE'])
 def make_image(tickername):
     '''
     Takes in a stock ticker and (optionally) a time frame.
@@ -253,9 +253,7 @@ def make_image(tickername):
             end = datetime.now()
             start = datetime(start_year, end.month, end.day)
             try:
-                dataset = pickle.loads(rd.get(ticker))
-
-
+                dataset = pickle.loads(rd.get(tickername))
             except Exception:
                 return f"{tickername} is not a valid/supported stock ticker"
                 
