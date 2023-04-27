@@ -286,7 +286,7 @@ def post_image(tickername):
     return "Success\n"
 
 
-@app.route('/image/<tickername>', methods = ['GET', 'POST', 'DELETE'])
+@app.route('/image/<tickername>', methods = ['GET', 'DELETE'])
 def make_image(tickername):
     '''
     Takes in a stock ticker and (optionally) a time frame.
@@ -297,7 +297,7 @@ def make_image(tickername):
         To retrieve image use "base_url/image -X GET >> file_name.png"
 
     Route: <baseURL>/image/<tickername>
-    Methods: ['GET', 'POST', 'DELETE']
+    Methods: ['GET', 'DELETE']
 
     Args:
         tickername: the stock-of-interest's ticker symbol ex) 'AAPL'
@@ -332,49 +332,51 @@ def make_image(tickername):
         rd_image.delete(tickername)
         return f'Plot deleted, there are {len(rd_image.keys())} images in the db\n'
 
-    elif method == 'POST':
-        try:
-            start_year = int(request.args.get('start', int(datetime.now().year) - 5)) #2000 is default year
-        except ValueError:
-            return "Error: query parameter 'start' must be an integer\n", 400
+    # elif method == 'POST':
+    #     try:
+    #         start_year = int(request.args.get('start', int(datetime.now().year) - 5)) #2000 is default year
+    #     except ValueError:
+    #         return "Error: query parameter 'start' must be an integer\n", 400
 
-        try:
-            end_year = int(request.args.get('end', int(datetime.now().year))) #2000 is default year
-        except ValueError:
-            return "Error: query parameter 'end' must be an integer\n", 400
+    #     try:
+    #         end_year = int(request.args.get('end', int(datetime.now().year))) #2000 is default year
+    #     except ValueError:
+    #         return "Error: query parameter 'end' must be an integer\n", 400
 
-        if tickername.isalpha() == False:
-            return f"Error: the ticker must be alphabetical.\n Ex) '/image/AAPL' \n NOT '/image/{tickername}'\n"   
+    #     if tickername.isalpha() == False:
+    #         return f"Error: the ticker must be alphabetical.\n Ex) '/image/AAPL' \n NOT '/image/{tickername}'\n"   
 
-        elif start_year > end_year:
-            return "Error: Start year greater than end year\n", 400
+    #     elif start_year > end_year:
+    #         return "Error: Start year greater than end year\n", 400
 
-        else:
+    #     else:
 
-            # Getting data
-            end = datetime.now()
-            start = datetime(start_year, end.month, end.day)
-            try:
-                dataset = pickle.loads(rd.get(tickername))
-            except Exception:
-                return f"{tickername} is not a valid/supported stock ticker"
+    #         # Getting data
+    #         end = datetime.now()
+    #         start = datetime(start_year, end.month, end.day)
+    #         try:
+    #             dataset = pickle.loads(rd.get(tickername))
+    #         except Exception:
+    #             return f"{tickername} is not a valid/supported stock ticker"
                 
-            # Selecting data
-            data_to_plot = dataset.loc[f"{start_year}":f"{end_year}", "Close"]   
-            plt.figure()
-            curr_plot = data_to_plot.plot(figsize=(12,4), legend = True) 
+    #         # Selecting data
+    #         data_to_plot = dataset.loc[f"{start_year}":f"{end_year}", "Close"]   
+    #         plt.figure()
+    #         curr_plot = data_to_plot.plot(figsize=(12,4), legend = True) 
                     
-            plt.legend([f"{tickername}"])
-            plt.title(f"{tickername}Stock Price History from {start_year} to {end_year}")
-            plt.ylabel("$ USD")
+    #         plt.legend([f"{tickername}"])
+    #         plt.title(f"{tickername}Stock Price History from {start_year} to {end_year}")
+    #         plt.ylabel("$ USD")
                 
-            buf = io.BytesIO()
-            plt.savefig(buf, format = 'png')
-            buf.seek(0)
+    #         buf = io.BytesIO()
+    #         plt.savefig(buf, format = 'png')
+    #         buf.seek(0)
 
-            rd_image.set(str(tickername), buf.getvalue())
+    #         rd_image.set(str(tickername), buf.getvalue())
 
-        return "Image is posted\n", 200
+    #      return "Image is posted\n", 200
+    else:
+        return "This method is not supported in this route\n"
 
 
 # to support multiple images, basically do samething as above but just repeat the "data_to_plot = " and "curr_plot" = lines. should work
