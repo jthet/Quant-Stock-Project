@@ -25,10 +25,21 @@ spec:
       containers:
         - name: quant-stock-flask-deployment
           imagePullPolicy: Always
-          image: jthet/quant_stock_api:1.0.1
+          image: lucalabardini/quant:1.0
           env:
             - name: REDIS-IP
               value: quant-stock-redis-service
           ports:
             - containerPort: 5000
+
+        - name: quant-stock-worker
+          imagePullPolicy: Always
+          image: lucalabardini/qworker:1.0
+          env:
+            - name: REDIS-IP
+              value: quant-stock-redis-service
+          ports:
+            - containerPort: 5000
+
+
 
