@@ -73,12 +73,12 @@ def job_api():
         return f"Error with in put data no ticker provided: {e}\n"
     
     try:
-        start = job['start']
+        start = int(job['start'])
     except Exception:
         start = int(datetime.now().year) - 5
 
     try:
-        end = job['end']
+        end = int(job['end'])
     except Exception:
         end = int(datetime.now().year)
 
@@ -86,7 +86,7 @@ def job_api():
         return f"Error: the ticker must be alphabetical.\n Ex) '/image/AAPL' \n NOT '/image/{tick}'\n"   
 
     elif start > end:
-        return "Error: Start year greater than end year\n", 400
+        return "Error: Start year greater than end year. Default start year is this year -5 years. Be sure to specify a start year if you want data from before 5 years ago.\n", 400
 
     
     return json.dumps(jobs.add_job(tick, start, end)) + "\n"
@@ -262,6 +262,11 @@ def get_dataFrame(ticker: str):
 
 @app.route('/image', methods = ['DELETE'])
 def del_images():
+    """
+    route: /image -X DELETE
+
+    This route deletes all of the images in the database.
+    """
     method = request.method
     if method == 'DELETE':
         rd_image.flushdb()
@@ -272,9 +277,9 @@ def del_images():
 
 def post_image(tickername,start,end):
     
-    start_year = int(datetime.now().year) - 5 #2000 is default year
+    start_year = start #2000 is default year
     
-    end_year = int(datetime.now().year) #2000 is default year
+    end_year = end #2000 is default year
     
     if tickername.isalpha() == False:
         return f"Error: the ticker must be alphabetical.\n Ex) '/image/AAPL' \n NOT '/image/{tickername}'\n"   
@@ -298,7 +303,7 @@ def post_image(tickername,start,end):
         curr_plot = data_to_plot.plot(figsize=(12,4), legend = True) 
                 
         plt.legend([f"{tickername}"])
-        plt.title(f"{tickername}Stock Price History from {start_year} to {end_year}")
+        plt.title(f"{tickername} Stock Price History from {start_year} through {end_year}")
         plt.ylabel("$ USD")
             
         buf = io.BytesIO()
@@ -554,7 +559,7 @@ def get_help() -> str:
         help_message (string) : brief descriptions of all available routes and methods
     """
 
-    list_of_functions = ['post_tickers', 'handle_tickers', 'handle_data', 'get_dataFrame', 'make_image', 'get_help']
+    list_of_functions = ['post_tickers', 'handle_tickers', 'handle_data', 'get_dataFrame', 'make_image', 'get_help', 'job_status', 'job_api', 'del_images', 'cal_correlation']
     
     help_message = '\nHERE IS A HELP MESSAGE FOR EVERY FUNCTION/ROUTE IN "quant_stock_api.py"\n\n'
 
