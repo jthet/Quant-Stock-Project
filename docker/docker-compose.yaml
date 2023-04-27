@@ -11,24 +11,23 @@ services:
         user: "1000:1000"
     flask-app:
         build:
-            context: ./
-            dockerfile: ./Dockerfile.api
+            context: ../
+            dockerfile: ./docker/Dockerfile.api
         depends_on:
             - redis-db
         environment:
             - REDIS-IP=redis-db
-        #image: jthet/quant_stock_api:1.0.1
-        image: lucalabardini/quant:1.0 # CHANGE TO IMAGE NAME FROM DOCKERHUB
+        image: lucalabardini/quant:1.0 #jthet/quant_stock_api:1.0.1
         ports:
             - 5000:5000
         volumes:
             - ./config.yaml:/config/config.yaml
     worker:
         build:
-            context: .
+            context: ../
             dockerfile: ./docker/Dockerfile.wrk
         depends_on:
             - redis-db
         environment:
             - REDIS-IP=redis-db
-        image: lucalabardini/qworker:1.0
+        image: lucalabardini/qworker:1.0 #jthet/quant_stock_worker:1.0.1

@@ -34,7 +34,7 @@ def generate_job_key(jid):
     """
     return 'job.{}'.format(jid)
 
-def instantiate_job(jid, status, ticker):
+def instantiate_job(jid, status, ticker, start, end):
     """
     Create the job object description as a python dictionary. Requires the job id, status,
     and ticker parameters.
@@ -42,11 +42,16 @@ def instantiate_job(jid, status, ticker):
     if type(jid) == str:
         return {'id': jid,
                 'status': status,
-                'ticker': ticker
+                'ticker': ticker,
+                'start': start,
+                'end': end
         }
     return {'id': jid.decode('utf-8'),
             'status': status.decode('utf-8'),
-            'ticker': ticker.decode('utf-8')
+            'ticker': ticker.decode('utf-8'),
+            'start': start.decode('utf-8'),
+            'end': end.decode('utf-8')
+
     }
 
 def save_job(job_key, job_dict):
@@ -57,10 +62,10 @@ def queue_job(jid):
     """Add a job to the redis queue."""
     q.put(jid)
 
-def add_job(ticker, status="submitted"):
+def add_job(ticker, start, end, status="submitted"):
     """Add a job to the redis queue."""
     jid = generate_jid()
-    job_dict = instantiate_job(jid, status, ticker)
+    job_dict = instantiate_job(jid, status, ticker, start, end)
     # update call to save_job:
     save_job(generate_job_key(jid), job_dict)
     # update call to queue_job:
