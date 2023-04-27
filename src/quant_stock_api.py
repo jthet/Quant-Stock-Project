@@ -61,7 +61,6 @@ def job_api():
     """
     API route for creating a new job to do some analysis. This route accepts a JSON payload
     describing the job to be created.
-
     ROUTE: [baseURL]/jobs/image -d '{"ticker": "<TickerNameHere>"}'
 
         Optionally: [baseURL]/jobs/image -d '{"ticker": "<TickerNameHere>", "start": "<start year>", "end": "<end_year>"}'
@@ -72,6 +71,9 @@ def job_api():
 
     Returns: None, initiates a job request for posting an image
 
+    Input:
+    -d '{"ticker": "<TickerNameHere>", "start": <IntegerStartYear>, "end: <IntegerEndYear>}'
+    
     """
     try:
         job = request.get_json(force=True)
@@ -142,7 +144,7 @@ def post_tickers(ticker: str) -> str:
 @app.route('/tickers', methods = ['GET', 'DELETE'])
 def handle_tickers():
     '''
-    Gets or Deletes the desired tickers stored in the redis db
+    Gets or Deletes tickers stored in the redis db
 
     Route: <baseURL>/tickers
 
