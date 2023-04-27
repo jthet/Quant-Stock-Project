@@ -11,8 +11,8 @@ services:
         user: "1000:1000"
     flask-app:
         build:
-            context: ./
-            dockerfile: ./Dockerfile.api
+            context: ../
+            dockerfile: ./docker/Dockerfile.api
         depends_on:
             - redis-db
         environment:
@@ -24,7 +24,7 @@ services:
             - ./config.yaml:/config/config.yaml
     worker:
         build:
-            context: .
+            context: ../
             dockerfile: ./docker/Dockerfile.wrk
         depends_on:
             - redis-db
