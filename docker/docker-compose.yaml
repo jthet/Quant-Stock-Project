@@ -17,7 +17,7 @@ services:
             - redis-db
         environment:
             - REDIS-IP=redis-db
-        image: jthet/quant_stock_api:1.0.1 #lucalabardini/quant:1.0 jthet/quant_stock_api:1.0.1
+        image: lucalabardini/quant:1.0 #jthet/quant_stock_api:1.0.1
         ports:
             - 5000:5000
         volumes:
@@ -30,4 +30,4 @@ services:
             - redis-db
         environment:
             - REDIS-IP=redis-db
-        image: jthet/quant_stock_worker:1.0.1 #lucalabardini/qworker:1.0 jthet/quant_stock_worker:1.0.1
+        image: lucalabardini/qworker:1.0 #jthet/quant_stock_worker:1.0.1
