@@ -9,3 +9,6 @@ def execute_job(jid):
     post_image(symbol)
 
     update_job_status(jid, 'complete')
+
+
+execute_job()

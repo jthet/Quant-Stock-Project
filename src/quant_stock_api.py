@@ -43,6 +43,14 @@ rd_tickers = get_ticker_db()
 
 @app.route('/jobs/<jid>', methods = ['GET'])
 def job_status(jid):
+    """
+    This route takes a job ID and returns the job status
+
+    Args: jid
+
+    Returns: status of the job that has been requested
+
+    """
     return jobs.get_job_by_id(jid)
 
 
@@ -51,6 +59,9 @@ def job_api():
     """
     API route for creating a new job to do some analysis. This route accepts a JSON payload
     describing the job to be created.
+
+    Input:
+    -d '{"ticker": "<TickerNameHere>"}'
     """
     try:
         job = request.get_json(force=True)
