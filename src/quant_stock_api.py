@@ -49,7 +49,6 @@ def job_status(jid):
     Args: jid
 
     Returns: status of the job that has been requested
-
     """
     return jobs.get_job_by_id(jid)
 
