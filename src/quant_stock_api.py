@@ -66,7 +66,30 @@ def job_api():
         job = request.get_json(force=True)
     except Exception as e:
         return json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
-    return json.dumps(jobs.add_job(job['ticker'])) + "\n"
+    
+    try:
+        tick = job['ticker']
+    except Exception as e:
+        return f"Error with in put data no ticker provided: {e}\n"
+    
+    try:
+        start = job['start']
+    except Exception:
+        start = int(datetime.now().year) - 5
+
+    try:
+        end = job['end']
+    except Exception:
+        end = int(datetime.now().year)
+
+    if tick.isalpha() == False:
+        return f"Error: the ticker must be alphabetical.\n Ex) '/image/AAPL' \n NOT '/image/{tick}'\n"   
+
+    elif start > end:
+        return "Error: Start year greater than end year\n", 400
+
+    
+    return json.dumps(jobs.add_job(tick, start, end)) + "\n"
 
 
 @app.route('/tickers/<ticker>', methods = ['POST'])
@@ -247,7 +270,7 @@ def del_images():
         return "This method is not supporter by the route\n"
 
 
-def post_image(tickername):
+def post_image(tickername,start,end):
     
     start_year = int(datetime.now().year) - 5 #2000 is default year
     
