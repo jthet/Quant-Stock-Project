@@ -60,7 +60,7 @@ def job_api():
     describing the job to be created.
 
     Input:
-    -d '{"ticker": "<TickerNameHere>"}'
+    -d '{"ticker": "<TickerNameHere>", "start": <IntegerStartYear>, "end: <IntegerEndYear>}'
     """
     try:
         job = request.get_json(force=True)
@@ -132,7 +132,7 @@ def post_tickers(ticker: str) -> str:
 @app.route('/tickers', methods = ['GET', 'DELETE'])
 def handle_tickers():
     '''
-    Gets or Deletes the desired tickers stored in the redis db
+    Gets or Deletes tickers stored in the redis db
 
     Route: <baseURL>/tickers
     Methods: ['GET', 'DELETE']
