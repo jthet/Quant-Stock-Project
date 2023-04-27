@@ -14,7 +14,7 @@ import math
 app = Flask(__name__)
 
 
-## Creating Redis clienst
+## Creating Redis clients
 def get_redis_client():
     redis_ip = os.environ.get('REDIS-IP')
     if not redis_ip:
@@ -40,13 +40,16 @@ rd_tickers = get_ticker_db()
 
 
 # ROUTES
-
 @app.route('/jobs/<jid>', methods = ['GET'])
 def job_status(jid):
     """
     This route takes a job ID and returns the job status
 
-    Args: jid
+    ROUTE: [baseURL]/jobs/<jid>
+
+    Methods: GET
+
+    Args: jid (str): The job ID associated with a job
 
     Returns: status of the job that has been requested
     """
@@ -59,8 +62,16 @@ def job_api():
     API route for creating a new job to do some analysis. This route accepts a JSON payload
     describing the job to be created.
 
-    Input:
-    -d '{"ticker": "<TickerNameHere>"}'
+    ROUTE: [baseURL]/jobs/image -d '{"ticker": "<TickerNameHere>"}'
+
+        Optionally: [baseURL]/jobs/image -d '{"ticker": "<TickerNameHere>", "start": "<start year>", "end": "<end_year>"}'
+
+    Methods: POST
+
+    Args: JSON / Dictionary formatted ticker and time information (see route)
+
+    Returns: None, initiates a job request for posting an image
+
     """
     try:
         job = request.get_json(force=True)
@@ -87,8 +98,7 @@ def job_api():
 
     elif start > end:
         return "Error: Start year greater than end year. Default start year is this year -5 years. Be sure to specify a start year if you want data from before 5 years ago.\n", 400
-
-    
+   
     return json.dumps(jobs.add_job(tick, start, end)) + "\n"
 
 
@@ -98,6 +108,7 @@ def post_tickers(ticker: str) -> str:
     Posts the desired ticker stored in the redis db
 
     Route: <baseURL>/tickers/<ticker>
+
     Methods: ['POST']
 
     Args: None
@@ -121,8 +132,7 @@ def post_tickers(ticker: str) -> str:
                 return "Ticker posted\n"
             else:
                 return "Ticker already in ticker list\n"
-        
-
+    
     else:
         return 'the method you tried is not supported\n'
 
@@ -135,6 +145,7 @@ def handle_tickers():
     Gets or Deletes the desired tickers stored in the redis db
 
     Route: <baseURL>/tickers
+
     Methods: ['GET', 'DELETE']
 
     Args: None
@@ -183,7 +194,6 @@ def handle_data() -> list:
     global rd
 
     if method == 'POST':
-        ### DO TRY EXCEPT OR IF STATEMENT TO MAKE SURE THERE ARE TICKERS IN DB
         try:
             tickerList = json.loads(rd_tickers.get("Tickers"))
             for ticker in tickerList:
@@ -202,10 +212,7 @@ def handle_data() -> list:
         return f'data deleted, there are {len(rd.keys())} keys in the db\n'
 
     elif method == 'GET':
-        
         dataframes = []
-
-        # USE THIS LINE TO GET KEYS FROM THE DB
         keys = [key.decode('utf-8') for key in rd.keys()]
 
         for ticker in keys:
@@ -256,16 +263,19 @@ def get_dataFrame(ticker: str):
         return returnDf_rel, 200
     return "\n"
 
-    
-
-###### NEED TO MAKE IMAGE ROUTE THAT CAN HANGLE 2+ TICKERS
 
 @app.route('/image', methods = ['DELETE'])
 def del_images():
     """
-    route: /image -X DELETE
+    Deletes all images in data base
 
-    This route deletes all of the images in the database.
+    Route: /image 
+
+    Method: DELETE
+
+    Args: None
+
+    Returns: Success message
     """
     method = request.method
     if method == 'DELETE':
@@ -276,6 +286,19 @@ def del_images():
 
 
 def post_image(tickername,start,end):
+    '''
+    Posts images from jobs given by the /jobs/image route
+
+    No route
+
+    Args: 
+        Tickername: ticker symbol (ex: 'AAPL')
+        start: Start year
+        end: End year
+    
+    Returns:
+        No returns, sets and image in the redis data base
+    '''
     
     start_year = start #2000 is default year
     
@@ -317,25 +340,20 @@ def post_image(tickername,start,end):
 @app.route('/image/<tickername>', methods = ['GET', 'DELETE'])
 def make_image(tickername):
     '''
-    Takes in a stock ticker and (optionally) a time frame.
-    Returns an plot of the stock price throughout the time frame
-    If a time frame is not specified, the current time and 5 years prior are used. 
+    Returns a plot already existing in the redis data base from /jobs/image route
 
-    *Sets the plot in a redis database*
-        To retrieve image use "base_url/image -X GET >> file_name.png"
+    Note: Image request is insantiated from a jobs request, then when complete is posted to the redis database. This method returns that image.
+
+          To retrieve image use "base_url/image -X GET >> file_name.png"
 
     Route: <baseURL>/image/<tickername>
     Methods: ['GET', 'DELETE']
 
     Args:
         tickername: the stock-of-interest's ticker symbol ex) 'AAPL'
-    
-    Query Parameters: (for Post method Only)
-        "start": The start year of the plot 
-        "end": the end year of the plot 
 
     Returns:
-        Success method and a image in a redis data base
+        Success message, and will either return a image.png file or delete plot in database
     '''
 
     method = request.method
@@ -360,54 +378,8 @@ def make_image(tickername):
         rd_image.delete(tickername)
         return f'Plot deleted, there are {len(rd_image.keys())} images in the db\n'
 
-    # elif method == 'POST':
-    #     try:
-    #         start_year = int(request.args.get('start', int(datetime.now().year) - 5)) #2000 is default year
-    #     except ValueError:
-    #         return "Error: query parameter 'start' must be an integer\n", 400
-
-    #     try:
-    #         end_year = int(request.args.get('end', int(datetime.now().year))) #2000 is default year
-    #     except ValueError:
-    #         return "Error: query parameter 'end' must be an integer\n", 400
-
-    #     if tickername.isalpha() == False:
-    #         return f"Error: the ticker must be alphabetical.\n Ex) '/image/AAPL' \n NOT '/image/{tickername}'\n"   
-
-    #     elif start_year > end_year:
-    #         return "Error: Start year greater than end year\n", 400
-
-    #     else:
-
-    #         # Getting data
-    #         end = datetime.now()
-    #         start = datetime(start_year, end.month, end.day)
-    #         try:
-    #             dataset = pickle.loads(rd.get(tickername))
-    #         except Exception:
-    #             return f"{tickername} is not a valid/supported stock ticker"
-                
-    #         # Selecting data
-    #         data_to_plot = dataset.loc[f"{start_year}":f"{end_year}", "Close"]   
-    #         plt.figure()
-    #         curr_plot = data_to_plot.plot(figsize=(12,4), legend = True) 
-                    
-    #         plt.legend([f"{tickername}"])
-    #         plt.title(f"{tickername}Stock Price History from {start_year} to {end_year}")
-    #         plt.ylabel("$ USD")
-                
-    #         buf = io.BytesIO()
-    #         plt.savefig(buf, format = 'png')
-    #         buf.seek(0)
-
-    #         rd_image.set(str(tickername), buf.getvalue())
-
-    #      return "Image is posted\n", 200
     else:
         return "This method is not supported in this route\n"
-
-
-# to support multiple images, basically do samething as above but just repeat the "data_to_plot = " and "curr_plot" = lines. should work
 
 
 
@@ -416,15 +388,19 @@ def cal_correlation(tickername1:str,tickername2:str,start:str,end:str,value_type
     '''
     Takes in two stocks, the start and end periods, and returns the correlation value using the open value
 
+    Route: [baseURL]/correlation/<tickername1>/<tickername2>/<start>/<end>/<value_type>
+
+    Methods: GET
+
     Args:
         tickername1: First ticker name ex) 'AAPL'
         tickername2: Second ticker name ex) 'MSFT'
         start: start of correlation period 'year-month-date' ex) '2016-04-25'
         end: end of correlation period 'year-month-date' ex) '2017-04-25'
+        value_type: Options for recorded stock price: ('Open', 'Close', 'High', 'Low')
 
     Returns:
         correlation_coefficient: correlation coefficient
-
     '''
 
     method = request.method
@@ -432,7 +408,7 @@ def cal_correlation(tickername1:str,tickername2:str,start:str,end:str,value_type
     if method == 'GET':
 
         #check value type
-        if value_type not in ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']:
+        if value_type not in ['Open', 'High', 'Low', 'Close']:
             return "Value type is invalid"
         
         #check date format
