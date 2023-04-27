@@ -72,7 +72,7 @@ def job_api():
 @app.route('/tickers/<ticker>', methods = ['POST'])
 def post_tickers(ticker: str) -> str:
     '''
-    Gets or Deletes the desired tickers stored in the redis db
+    Posts the desired ticker stored in the redis db
 
     Route: <baseURL>/tickers/<ticker>
     Methods: ['POST']
