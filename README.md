@@ -1,6 +1,6 @@
 # Quant Stock Project
 
-This project is an application that enables users to run various simulations on the stock market using Flask, Docker, Redis database, and Kubernetes clusters. The main objective of the project is to analyze past data and determine the optimal portfolio selection that minimizes risks while maximizing returns (maximizing sharpe ratio).
+This project is an application that enables users to run various simulations on the stock market using Flask, Docker, Redis database, and Kubernetes clusters. The main objective of the project is to analyze past data and determine the optimal portfolio selection that minimizes risks while maximizing returns (maximizing sharpe ratio). Note this project doesn't contain quant strategies, rather it is a containerized and portable application, API, and database to store and serve financial data to users. Kubernetes then deploys, orchestrates, manages, and scales this application..
 
 
 <h3>Data Used</h3>
